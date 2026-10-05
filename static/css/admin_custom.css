@@ -1,0 +1,367 @@
+/* ==========================================================================
+   Sudur Chinari - Professional Jazzmin & Translation Admin Design
+   ========================================================================== */
+
+/* ── 1. Card & Container Layout ── */
+.card {
+    border-radius: 0.5rem !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03) !important;
+    border: 1px solid #e2e8f0 !important;
+    background-color: #ffffff !important;
+}
+
+.card .card-body {
+    padding: 1.75rem 2rem !important;
+}
+
+/* ── 2. Horizontal Tabs Navigation ── */
+.card-header .nav-tabs {
+    border-bottom: 2px solid #e2e8f0 !important;
+    background-color: #f8fafc !important;
+    padding: 0.5rem 0.75rem 0 !important;
+    border-top-left-radius: 0.5rem !important;
+    border-top-right-radius: 0.5rem !important;
+    gap: 0.35rem !important;
+}
+
+.card-header .nav-tabs .nav-link {
+    font-weight: 600 !important;
+    font-size: 0.875rem !important;
+    color: #64748b !important;
+    padding: 0.7rem 1.25rem !important;
+    border: 1px solid transparent !important;
+    border-top-left-radius: 0.5rem !important;
+    border-top-right-radius: 0.5rem !important;
+    transition: all 0.15s ease-in-out !important;
+    margin-bottom: -2px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+}
+
+.card-header .nav-tabs .nav-link:hover {
+    color: #0f172a !important;
+    background: #e2e8f0 !important;
+    border-color: #cbd5e1 #cbd5e1 transparent !important;
+}
+
+.card-header .nav-tabs .nav-link.active {
+    color: #065f46 !important;
+    background: #ffffff !important;
+    border-color: #e2e8f0 #e2e8f0 #ffffff !important;
+    border-top: 3px solid #059669 !important;
+    font-weight: 700 !important;
+}
+
+/* Suppress unstyled or legacy jQuery UI tabs */
+.ui-tabs-nav {
+    display: none !important;
+}
+
+/* ── 3. Form Group, Labels & Responsive Field Boxes ── */
+.form-group {
+    margin-bottom: 1.5rem !important;
+}
+
+.form-group > .row {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    align-items: flex-start !important;
+}
+
+.form-group > .row > label {
+    font-size: 0.875rem !important;
+    font-weight: 700 !important;
+    color: #1e293b !important;
+    padding-top: 0.55rem !important;
+    padding-left: 0 !important;
+}
+
+/* Force fieldBox column to expand to fill available horizontal width */
+.form-group .row .fieldBox,
+.form-group .fieldBox {
+    flex: 1 1 0% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    padding-right: 0 !important;
+}
+
+/* ── 4. Form Controls: Full-Width, Sleek Borders & Focus Ring ── */
+.form-group input[type="text"],
+.form-group input[type="url"],
+.form-group input[type="email"],
+.form-group input[type="password"],
+.form-group textarea,
+.form-group select,
+.vTextField,
+.vURLField,
+.vLargeTextField {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    padding: 0.55rem 0.85rem !important;
+    font-size: 0.925rem !important;
+    font-weight: 400 !important;
+    line-height: 1.5 !important;
+    color: #1e293b !important;
+    background-color: #ffffff !important;
+    background-clip: padding-box !important;
+    border: 1.5px solid #cbd5e1 !important;
+    border-radius: 0.375rem !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out !important;
+}
+
+/* Number fields bounded to reasonable width */
+.form-group input[type="number"],
+.vIntegerField {
+    display: block !important;
+    width: 100% !important;
+    max-width: 240px !important;
+    box-sizing: border-box !important;
+    padding: 0.55rem 0.85rem !important;
+    font-size: 0.925rem !important;
+    color: #1e293b !important;
+    background-color: #ffffff !important;
+    border: 1.5px solid #cbd5e1 !important;
+    border-radius: 0.375rem !important;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus,
+.vTextField:focus,
+.vURLField:focus,
+.vLargeTextField:focus,
+.vIntegerField:focus {
+    border-color: #059669 !important;
+    box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.15) !important;
+    outline: 0 !important;
+}
+
+/* ── 5. Related Widget Wrapper (Foreign Keys: Category, District, Author) ── */
+.related-widget-wrapper {
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.5rem !important;
+    width: 100% !important;
+    max-width: 100% !important;
+}
+
+.related-widget-wrapper select {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    width: 100% !important;
+}
+
+.related-widget-wrapper .related-widget-wrapper-link {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0.4rem !important;
+    border-radius: 0.375rem !important;
+    background-color: #f1f5f9 !important;
+    border: 1px solid #cbd5e1 !important;
+    transition: all 0.15s ease !important;
+    flex-shrink: 0 !important;
+}
+
+.related-widget-wrapper .related-widget-wrapper-link:hover {
+    background-color: #e2e8f0 !important;
+    border-color: #94a3b8 !important;
+}
+
+.related-widget-wrapper .related-widget-wrapper-link img {
+    width: 16px !important;
+    height: 16px !important;
+}
+
+/* ── 6. Textarea Ergonomics ── */
+textarea.vLargeTextField,
+.form-group textarea {
+    min-height: 120px !important;
+    font-family: inherit !important;
+    line-height: 1.6 !important;
+}
+
+textarea[name^="content"] {
+    min-height: 320px !important;
+    font-size: 0.975rem !important;
+    line-height: 1.65 !important;
+}
+
+textarea[name^="excerpt"] {
+    min-height: 95px !important;
+}
+
+textarea[name^="description"],
+textarea[name^="bio"] {
+    min-height: 110px !important;
+}
+
+/* ── 7. Bilingual Field Labels ── */
+label.col-sm-3 {
+    line-height: 1.4 !important;
+}
+
+/* ── 8. Checkboxes ── */
+.form-group .col-sm-9 > input[type="checkbox"],
+.form-group input[type="checkbox"] {
+    width: 1.25rem !important;
+    height: 1.25rem !important;
+    margin-top: 0.4rem !important;
+    accent-color: #059669 !important;
+    cursor: pointer !important;
+    display: inline-block !important;
+}
+
+/* ── 9. Date and Time Fields ── */
+.vDateField,
+.vTimeField {
+    display: inline-block !important;
+    width: auto !important;
+    max-width: 160px !important;
+    margin-right: 0.5rem !important;
+}
+
+p.datetime {
+    font-size: 0.875rem !important;
+    color: #64748b !important;
+    display: flex !important;
+    align-items: center !important;
+    flex-wrap: wrap !important;
+    gap: 0.5rem !important;
+    margin-bottom: 0 !important;
+}
+
+.datetimeshortcuts {
+    font-size: 0.8rem !important;
+    font-weight: 600 !important;
+}
+
+.datetimeshortcuts a {
+    color: #059669 !important;
+    margin-right: 0.5rem !important;
+}
+
+p.datetime .timezonewarning {
+    display: block !important;
+    width: 100% !important;
+    font-size: 0.75rem !important;
+    color: #94a3b8 !important;
+    margin-top: 0.25rem !important;
+}
+
+/* ── 10. File Uploads ── */
+.file-upload {
+    display: flex !important;
+    align-items: center !important;
+    flex-wrap: wrap !important;
+    gap: 0.5rem !important;
+    font-size: 0.875rem !important;
+    color: #475569 !important;
+}
+
+.file-upload a {
+    color: #059669 !important;
+    font-weight: 600 !important;
+}
+
+input[type="file"] {
+    padding: 0.4rem 0.6rem !important;
+    border: 1px dashed #cbd5e1 !important;
+    border-radius: 0.375rem !important;
+    background-color: #f8fafc !important;
+    cursor: pointer !important;
+}
+
+/* ── 11. Inlines (Tabular / Stacked) ── */
+.inline-group {
+    border-radius: 0.5rem !important;
+    border: 1px solid #e2e8f0 !important;
+    background: #ffffff !important;
+    overflow: hidden !important;
+    margin-top: 1.5rem !important;
+}
+
+.inline-group .tabular fieldset.module {
+    border: none !important;
+    padding: 0 !important;
+}
+
+.inline-group table {
+    border-collapse: collapse !important;
+    width: 100% !important;
+}
+
+.inline-group th {
+    background-color: #f8fafc !important;
+    color: #475569 !important;
+    font-weight: 700 !important;
+    font-size: 0.825rem !important;
+    padding: 0.75rem 1rem !important;
+    border-bottom: 2px solid #e2e8f0 !important;
+}
+
+.inline-group td {
+    padding: 0.75rem 1rem !important;
+    border-bottom: 1px solid #f1f5f9 !important;
+}
+
+/* ── 12. Submit Buttons & Actions ── */
+.submit-row {
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 0.5rem !important;
+    padding: 1rem 1.25rem !important;
+    margin-top: 1.5rem !important;
+}
+
+.btn-success,
+.btn-primary {
+    background-color: #059669 !important;
+    border-color: #059669 !important;
+    font-weight: 600 !important;
+    border-radius: 0.375rem !important;
+    padding: 0.55rem 1.25rem !important;
+    box-shadow: 0 1px 3px rgba(5, 150, 105, 0.2) !important;
+}
+
+.btn-success:hover,
+.btn-primary:hover {
+    background-color: #047857 !important;
+    border-color: #047857 !important;
+}
+
+.btn-info {
+    background-color: #0284c7 !important;
+    border-color: #0284c7 !important;
+    font-weight: 600 !important;
+    border-radius: 0.375rem !important;
+}
+
+.btn-info:hover {
+    background-color: #0369a1 !important;
+    border-color: #0369a1 !important;
+}
+
+/* ── 13. Help Text & Errors ── */
+.help-block,
+.form-text {
+    font-size: 0.8rem !important;
+    color: #64748b !important;
+    margin-top: 0.35rem !important;
+}
+
+.errors input,
+.errors textarea,
+.errors select {
+    border-color: #ef4444 !important;
+    background-color: #fef2f2 !important;
+}
+
+/* Hide stray controls */
+.control-sidebar,
+.ui-customiser {
+    display: none !important;
+}
