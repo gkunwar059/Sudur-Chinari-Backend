@@ -1,12 +1,18 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import (
-    CategoryViewSet, AuthorViewSet, DistrictViewSet, ArticleViewSet,
-    ArticleCommentViewSet, VideoItemViewSet, PhotoStoryViewSet, BreakingNewsViewSet,
-    PartnerViewSet, HomePagePlacementViewSet, DistrictThemeViewSet, DistrictStatsViewSet,
-    DistrictCultureViewSet, DistrictPlaceViewSet, SitemapView,
-    HotelViewSet
+
+from apps.articles.views import (
+    CategoryViewSet, AuthorViewSet, ArticleViewSet,
+    ArticleCommentViewSet, BreakingNewsViewSet,
+    HomePagePlacementViewSet, SitemapView
 )
+from apps.districts.views import (
+    DistrictViewSet, DistrictThemeViewSet, DistrictStatsViewSet,
+    DistrictCultureViewSet, DistrictPlaceViewSet, PartnerViewSet
+)
+from apps.hotels.views import HotelViewSet
+from apps.multimedia.views import VideoItemViewSet, PhotoStoryViewSet
+from apps.ads.views import PopupAdViewSet
 
 router = DefaultRouter()
 router.register(r'categories', CategoryViewSet)
@@ -24,6 +30,7 @@ router.register(r'district-stats', DistrictStatsViewSet)
 router.register(r'district-cultures', DistrictCultureViewSet)
 router.register(r'district-places', DistrictPlaceViewSet)
 router.register(r'hotels', HotelViewSet, basename='hotel')
+router.register(r'popup-ads', PopupAdViewSet, basename='popup-ad')
 
 urlpatterns = [
     path('sitemap/', SitemapView.as_view(), name='api-sitemap'),

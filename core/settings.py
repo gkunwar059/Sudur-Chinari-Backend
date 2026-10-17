@@ -42,6 +42,13 @@ INSTALLED_APPS = [
     'rest_framework',
     'corsheaders',
     'djoser',
+    'apps.common',
+    'apps.accounts',
+    'apps.districts',
+    'apps.articles',
+    'apps.hotels',
+    'apps.multimedia',
+    'apps.ads',
     'api',
 ]
 
@@ -86,6 +93,8 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 # Password validation
@@ -151,12 +160,13 @@ MAILERS = {
 
 # Custom config
 CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_CREDENTIALS = True
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'DEFAULT_PAGINATION_CLASS': 'api.utils.StandardResultsSetPagination',
     'PAGE_SIZE': 20,
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.AllowAny',
@@ -176,24 +186,28 @@ JAZZMIN_SETTINGS = {
     "site_brand": "Sudur Chinari",
     "welcome_sign": "Welcome to Sudur Chinari Dashboard",
     "copyright": "Sudur Chinari News",
-    "search_model": ["api.Article", "api.District"],
+    "search_model": ["articles.Article", "districts.District", "hotels.Hotel"],
     "show_sidebar": True,
     "navigation_expanded": True,
     "order_with_respect_to": [
-        "api.Article",
-        "api.Category",
-        "api.District",
-        "api.Author",
-        "api.BreakingNews",
-        "api.PhotoStory",
-        "api.VideoItem",
-        "api.HomePagePlacement",
-        "api.Partner",
-        "api.ArticleComment",
-        "api.DistrictPlace",
-        "api.DistrictStats",
-        "api.DistrictCulture",
-        "api.DistrictTheme",
+        "articles.Article",
+        "articles.Category",
+        "districts.District",
+        "hotels.Hotel",
+        "hotels.Amenity",
+        "ads.PopupAd",
+        "articles.Author",
+        "articles.BreakingNews",
+        "multimedia.PhotoStory",
+        "multimedia.VideoItem",
+        "articles.HomePagePlacement",
+        "districts.Partner",
+        "articles.ArticleComment",
+        "districts.DistrictPlace",
+        "districts.DistrictStats",
+        "districts.DistrictCulture",
+        "districts.DistrictTheme",
+        "accounts.UserProfile",
         "auth.User",
         "auth.Group",
     ],
@@ -201,21 +215,25 @@ JAZZMIN_SETTINGS = {
         "auth": "fas fa-users-cog",
         "auth.user": "fas fa-user-shield",
         "auth.Group": "fas fa-user-friends",
-        "api.Article": "fas fa-newspaper",
-        "api.Category": "fas fa-folder-open",
-        "api.Author": "fas fa-feather-alt",
-        "api.District": "fas fa-map-marked-alt",
-        "api.VideoItem": "fas fa-video",
-        "api.PhotoStory": "fas fa-camera-retro",
-        "api.BreakingNews": "fas fa-bolt",
-        "api.Partner": "fas fa-handshake",
-        "api.ArticleComment": "fas fa-comments",
-        "api.HomePagePlacement": "fas fa-layer-group",
-        "api.DistrictTheme": "fas fa-palette",
-        "api.DistrictStats": "fas fa-chart-bar",
-        "api.DistrictCulture": "fas fa-music",
-        "api.DistrictPlace": "fas fa-monument",
-        "api.Tag": "fas fa-tags",
+        "accounts.UserProfile": "fas fa-id-card",
+        "articles.Article": "fas fa-newspaper",
+        "articles.Category": "fas fa-folder-open",
+        "articles.Author": "fas fa-feather-alt",
+        "districts.District": "fas fa-map-marked-alt",
+        "hotels.Hotel": "fas fa-hotel",
+        "hotels.Amenity": "fas fa-concierge-bell",
+        "ads.PopupAd": "fas fa-ad",
+        "multimedia.VideoItem": "fas fa-video",
+        "multimedia.PhotoStory": "fas fa-camera-retro",
+        "articles.BreakingNews": "fas fa-bolt",
+        "districts.Partner": "fas fa-handshake",
+        "articles.ArticleComment": "fas fa-comments",
+        "articles.HomePagePlacement": "fas fa-layer-group",
+        "districts.DistrictTheme": "fas fa-palette",
+        "districts.DistrictStats": "fas fa-chart-bar",
+        "districts.DistrictCulture": "fas fa-music",
+        "districts.DistrictPlace": "fas fa-monument",
+        "articles.Tag": "fas fa-tags",
     },
     "default_icon_parents": "fas fa-chevron-circle-right",
     "default_icon_children": "fas fa-circle",
@@ -258,7 +276,7 @@ JAZZMIN_UI_TWEAKS = {
 }
 
 AUTHENTICATION_BACKENDS = [
-    'api.backends.EmailOrUsernameModelBackend',
+    'apps.accounts.backends.EmailOrUsernameModelBackend',
     'django.contrib.auth.backends.ModelBackend',
 ]
 
@@ -266,8 +284,9 @@ DJOSER = {
     'LOGIN_FIELD': 'username',
     'USER_CREATE_PASSWORD_RETYPE': False,
     'SERIALIZERS': {
-        'user_create': 'api.serializers.CustomUserCreateSerializer',
-        'current_user': 'api.serializers.CustomUserSerializer',
-        'user': 'api.serializers.CustomUserSerializer',
+        'user_create': 'apps.accounts.serializers.CustomUserCreateSerializer',
+        'current_user': 'apps.accounts.serializers.CustomUserSerializer',
+        'user': 'apps.accounts.serializers.CustomUserSerializer',
     },
 }
+

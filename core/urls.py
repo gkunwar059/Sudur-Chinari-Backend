@@ -28,5 +28,15 @@ urlpatterns = [
     path('api/v1/auth/', include('djoser.urls.jwt')),
 ]
 
+from django.views.static import serve
+from django.urls import re_path
+
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+    
+FRONTEND_IMAGES = settings.BASE_DIR.parent / 'Sudur-Chinari-Frontend' / 'public' / 'images'
+if FRONTEND_IMAGES.exists():
+    urlpatterns += [
+        re_path(r'^images/(?P<path>.*)$', serve, {'document_root': str(FRONTEND_IMAGES)}),
+    ]
