@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.1/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -20,12 +21,37 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-82f#&-qg(+h1go!t-&rvz!)u!*^syw-pzt@ks!mnf-yp6@wika'
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-82f#&-qg(+h1go!t-&rvz!)u!*^syw-pzt@ks!mnf-yp6@wika')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DEBUG', 'True').lower() in ('true', '1', 'yes')
 
-ALLOWED_HOSTS = ['*']
+allowed_hosts_env = os.environ.get('ALLOWED_HOSTS', '*')
+if allowed_hosts_env == '*':
+    ALLOWED_HOSTS = ['*']
+else:
+    ALLOWED_HOSTS = [h.strip() for h in allowed_hosts_env.split(',') if h.strip()]
+
+csrf_origins_env = os.environ.get('CSRF_TRUSTED_ORIGINS', '')
+if csrf_origins_env:
+    CSRF_TRUSTED_ORIGINS = [o.strip() for o in csrf_origins_env.split(',') if o.strip()]
+else:
+    CSRF_TRUSTED_ORIGINS = [
+        'http://localhost',
+        'http://localhost:80',
+        'http://localhost:3000',
+        'http://localhost:8000',
+        'http://localhost:8001',
+        'http://127.0.0.1',
+        'http://127.0.0.1:80',
+        'http://127.0.0.1:3000',
+        'http://127.0.0.1:8000',
+        'http://127.0.0.1:8001',
+    ]
+
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+USE_X_FORWARDED_HOST = True
+USE_X_FORWARDED_PORT = True
 
 
 # Application definition
@@ -87,12 +113,27 @@ WSGI_APPLICATION = 'core.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.1/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+DB_ENGINE = os.environ.get('DB_ENGINE', 'sqlite').lower()
+if DB_ENGINE in ('postgres', 'postgresql'):
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.environ.get('POSTGRES_DB', os.environ.get('DB_NAME', 'sudur_chinari')),
+            'USER': os.environ.get('POSTGRES_USER', os.environ.get('DB_USER', 'postgres')),
+            'PASSWORD': os.environ.get('POSTGRES_PASSWORD', os.environ.get('DB_PASSWORD', 'postgres')),
+            'HOST': os.environ.get('POSTGRES_HOST', os.environ.get('DB_HOST', 'db')),
+            'PORT': os.environ.get('POSTGRES_PORT', os.environ.get('DB_PORT', '5432')),
+        }
     }
-}
+else:
+    db_file_env = os.environ.get('SQLITE_PATH')
+    db_path = Path(db_file_env) if db_file_env else (BASE_DIR / 'db.sqlite3')
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': db_path,
+        }
+    }
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
@@ -139,15 +180,15 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.1/howto/static-files/
 
-STATIC_URL = 'static/'
-STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATIC_URL = '/static/'
+STATIC_ROOT = Path(os.environ.get('STATIC_ROOT', BASE_DIR / 'staticfiles'))
 STATICFILES_DIRS = [
     BASE_DIR / 'static',
 ]
 
 # Media files (User uploaded files)
 MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_ROOT = Path(os.environ.get('MEDIA_ROOT', BASE_DIR / 'media'))
 
 # Email
 # https://docs.djangoproject.com/en/6.1/topics/email/#topic-email-configuration
@@ -159,7 +200,13 @@ MAILERS = {
 }
 
 # Custom config
-CORS_ALLOW_ALL_ORIGINS = True
+cors_origins_env = os.environ.get('CORS_ALLOWED_ORIGINS', '')
+if cors_origins_env:
+    CORS_ALLOWED_ORIGINS = [o.strip() for o in cors_origins_env.split(',') if o.strip()]
+    CORS_ALLOW_ALL_ORIGINS = False
+else:
+    CORS_ALLOW_ALL_ORIGINS = os.environ.get('CORS_ALLOW_ALL_ORIGINS', 'True').lower() in ('true', '1', 'yes')
+
 CORS_ALLOW_CREDENTIALS = True
 
 REST_FRAMEWORK = {
