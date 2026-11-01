@@ -3,7 +3,8 @@ from modeltranslation.admin import TranslationTabularInline, TranslationStackedI
 from apps.common.admin_base import BaseTranslatedAdmin
 from .models import (
     District, DistrictTheme, DistrictStats, DistrictCulture,
-    DistrictPlace, DistrictSliderImage, Partner
+    DistrictPlace, DistrictSliderImage, Partner,
+    PhotoSubmission, StorySubmission
 )
 
 class DistrictThemeInline(admin.StackedInline):
@@ -72,3 +73,41 @@ class PartnerAdmin(BaseTranslatedAdmin):
     list_display = ('name_en', 'role_en', 'district', 'translation_complete')
     list_filter = ('district',)
     search_fields = ('name_en', 'name_ne', 'role_en', 'role_ne')
+
+
+@admin.register(PhotoSubmission)
+class PhotoSubmissionAdmin(admin.ModelAdmin):
+    list_display = ('title', 'photographer_name', 'district', 'status', 'created_at')
+    list_filter = ('status', 'district', 'created_at')
+    search_fields = ('title', 'photographer_name', 'description')
+    list_editable = ('status',)
+    actions = ['approve_photos', 'reject_photos']
+
+    @admin.action(description='Approve selected photos (Show in frontend)')
+    def approve_photos(self, request, queryset):
+        count = queryset.update(status='approved')
+        self.message_user(request, f"{count} photos approved successfully.")
+
+    @admin.action(description='Reject selected photos')
+    def reject_photos(self, request, queryset):
+        count = queryset.update(status='rejected')
+        self.message_user(request, f"{count} photos rejected.")
+
+
+@admin.register(StorySubmission)
+class StorySubmissionAdmin(admin.ModelAdmin):
+    list_display = ('title', 'author_name', 'district', 'main_category', 'status', 'created_at')
+    list_filter = ('status', 'main_category', 'district', 'created_at')
+    search_fields = ('title', 'author_name', 'description')
+    list_editable = ('status',)
+    actions = ['approve_stories', 'reject_stories']
+
+    @admin.action(description='Approve selected stories (Show in frontend)')
+    def approve_stories(self, request, queryset):
+        count = queryset.update(status='approved')
+        self.message_user(request, f"{count} stories approved successfully.")
+
+    @admin.action(description='Reject selected stories')
+    def reject_stories(self, request, queryset):
+        count = queryset.update(status='rejected')
+        self.message_user(request, f"{count} stories rejected.")

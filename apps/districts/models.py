@@ -134,3 +134,62 @@ class Partner(models.Model):
         if self.district:
             return f"{self.name} ({self.district.name})"
         return self.name
+
+
+class PhotoSubmission(models.Model):
+    STATUS_CHOICES = (
+        ('pending', 'Pending Review'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+    )
+
+    photographer_name = models.CharField(max_length=255, verbose_name="Photographer Name")
+    district = models.ForeignKey(District, on_delete=models.CASCADE, related_name="photo_submissions")
+    title = models.CharField(max_length=255, verbose_name="Photo Title")
+    description = models.TextField(blank=True, default="", verbose_name="Description")
+    image = models.ImageField(upload_to="contributions/photos/", blank=True, null=True, verbose_name="Uploaded Photo")
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Photo Submission"
+        verbose_name_plural = "Photo Submissions"
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.title} by {self.photographer_name} ({self.district.name})"
+
+
+class StorySubmission(models.Model):
+    STATUS_CHOICES = (
+        ('pending', 'Pending Review'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+    )
+    CATEGORY_CHOICES = (
+        ('history', 'History / इतिहास'),
+        ('culture', 'Culture / संस्कृति'),
+        ('lifestyle', 'Lifestyle / जीवनशैली'),
+        ('tourism', 'Tourism / पर्यटन'),
+        ('folklore', 'Folklore / लोककथा'),
+        ('oral_history', 'Oral History / मौखिक इतिहास'),
+        ('memories', 'Memories / सम्झनाहरू'),
+    )
+
+    author_name = models.CharField(max_length=255, verbose_name="Author Name")
+    district = models.ForeignKey(District, on_delete=models.SET_NULL, null=True, blank=True, related_name="story_submissions")
+    main_category = models.CharField(max_length=50, choices=CATEGORY_CHOICES, default='history')
+    sub_topic = models.CharField(max_length=255, blank=True, default="")
+    title = models.CharField(max_length=255, verbose_name="Story Title")
+    description = models.TextField(verbose_name="Story / Knowledge Description")
+    media_file = models.FileField(upload_to="contributions/stories/", blank=True, null=True, verbose_name="Picture or Audio")
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "User Story Submission"
+        verbose_name_plural = "User Story Submissions"
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.title} by {self.author_name} ({self.main_category})"

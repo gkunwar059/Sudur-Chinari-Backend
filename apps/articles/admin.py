@@ -3,7 +3,7 @@ from modeltranslation.admin import TranslationTabularInline
 from apps.common.admin_base import BaseTranslatedAdmin
 from .models import (
     Category, Author, Article, Tag, ArticleComment,
-    BreakingNews, HomePagePlacement
+    BreakingNews, HomePagePlacement, ArticleBookmark, HeroSlide
 )
 
 class SubCategoryInline(TranslationTabularInline):
@@ -97,3 +97,46 @@ class BreakingNewsAdmin(BaseTranslatedAdmin):
 class HomePagePlacementAdmin(admin.ModelAdmin):
     list_display = ('section_name',)
     filter_horizontal = ('articles',)
+
+
+@admin.register(ArticleBookmark)
+class ArticleBookmarkAdmin(admin.ModelAdmin):
+    list_display = ('user', 'article', 'created_at')
+    list_filter = ('created_at',)
+    search_fields = ('user__username', 'article__title_en', 'article__title_ne')
+
+
+@admin.register(HeroSlide)
+class HeroSlideAdmin(BaseTranslatedAdmin):
+    list_display = ('title_en', 'title_ne', 'subtitle_en', 'order', 'is_active', 'article', 'translation_complete')
+    list_filter = ('is_active',)
+    search_fields = ('title_en', 'title_ne', 'subtitle_en', 'subtitle_ne', 'excerpt_en', 'excerpt_ne')
+    list_editable = ('order', 'is_active')
+
+    fieldsets = (
+        ("Content (Bilingual)", {
+            "fields": (
+                ("title_en", "title_ne"),
+                ("subtitle_en", "subtitle_ne"),
+                ("excerpt_en", "excerpt_ne"),
+            )
+        }),
+        ("Media & Target", {
+            "fields": (
+                "image", "image_url", "article",
+            )
+        }),
+        ("Call To Actions", {
+            "fields": (
+                ("primary_button_text_en", "primary_button_text_ne"),
+                "primary_button_url",
+                ("secondary_button_text_en", "secondary_button_text_ne"),
+                "secondary_button_url",
+            )
+        }),
+        ("Display Settings", {
+            "fields": (
+                "order", "is_active",
+            )
+        }),
+    )

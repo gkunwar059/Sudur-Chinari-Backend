@@ -365,3 +365,24 @@ input[type="file"] {
 .ui-customiser {
     display: none !important;
 }
+
+/* ── 14. Sidebar Active Navigation Link & Smooth Scroll ── */
+.app-sidebar .sidebar-wrapper,
+#jazzy-sidebar .sidebar-wrapper {
+    scroll-behavior: smooth;
+}
+
+.sidebar-wrapper .sidebar-menu .nav-link.active,
+#jazzy-navigation .nav-link.active {
+    background-color: #059669 !important;
+    color: #ffffff !important;
+    font-weight: 600 !important;
+    border-radius: 0.375rem !important;
+    box-shadow: 0 2px 5px rgba(5, 150, 105, 0.35) !important;
+}
+
+.sidebar-wrapper .sidebar-menu .nav-link.active i,
+#jazzy-navigation .nav-link.active i {
+    color: #ffffff !important;
+}
+

@@ -2,7 +2,7 @@ from rest_framework import viewsets
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.decorators import action
-from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly
+from rest_framework.permissions import AllowAny, IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.filters import SearchFilter
 from django.db.models import Q, F, Prefetch
 from django.utils import timezone
@@ -10,12 +10,12 @@ from apps.common.permissions import IsAdminOrReadOnly, IsOwnerOrReadOnly
 from apps.districts.models import District
 from .models import (
     Category, Author, Article, Tag, ArticleComment,
-    BreakingNews, HomePagePlacement
+    BreakingNews, HomePagePlacement, ArticleBookmark, HeroSlide
 )
 from .serializers import (
     CategorySerializer, CategoryMenuSerializer, AuthorSerializer,
     ArticleSerializer, ArticleCommentSerializer, BreakingNewsSerializer,
-    HomePagePlacementSerializer
+    HomePagePlacementSerializer, ArticleBookmarkSerializer, HeroSlideSerializer
 )
 
 class CategoryViewSet(viewsets.ModelViewSet):
@@ -147,15 +147,49 @@ class ArticleViewSet(viewsets.ModelViewSet):
             
         return qs
 
+    @action(detail=True, methods=['post'], permission_classes=[AllowAny])
+    def like(self, request, slug=None):
+        article = self.get_object()
+        article.likes = F('likes') + 1
+        article.save(update_fields=['likes'])
+        article.refresh_from_db()
+        return Response({'likes': article.likes})
+
+    @action(detail=True, methods=['post'], permission_classes=[AllowAny])
+    def view(self, request, slug=None):
+        article = self.get_object()
+        article.views = F('views') + 1
+        article.save(update_fields=['views'])
+        article.refresh_from_db()
+        return Response({'views': article.views})
+
+
+class ArticleBookmarkViewSet(viewsets.ModelViewSet):
+    serializer_class = ArticleBookmarkSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return ArticleBookmark.objects.filter(user=self.request.user).select_related('article')
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
 
 class ArticleCommentViewSet(viewsets.ModelViewSet):
     queryset = ArticleComment.objects.all().order_by('-createdAt')
     serializer_class = ArticleCommentSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
+
+    def get_permissions(self):
+        if self.action in ['list', 'retrieve', 'like']:
+            return [AllowAny()]
+        return [IsAuthenticated()]
     
     def perform_create(self, serializer):
-        user = self.request.user if (self.request.user and self.request.user.is_authenticated) else None
-        serializer.save(user=user)
+        user = self.request.user
+        name = (user.get_full_name() or '').strip()
+        if not name:
+            name = getattr(user, 'name', '') or user.username or user.email or 'प्रमाणित प्रयोगकर्ता'
+        serializer.save(user=user, authorName=name)
 
     def get_queryset(self):
         qs = super().get_queryset()
@@ -236,3 +270,17 @@ class SitemapView(APIView):
             })
 
         return Response(sitemap_data)
+
+
+class HeroSlideViewSet(viewsets.ModelViewSet):
+    queryset = HeroSlide.objects.filter(is_active=True).select_related('article')
+    serializer_class = HeroSlideSerializer
+    permission_classes = [IsAdminOrReadOnly]
+    filter_backends = [SearchFilter]
+    search_fields = ['title', 'subtitle', 'excerpt']
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        if self.request.query_params.get('all') == 'true' and (self.request.user.is_staff or self.request.user.is_superuser):
+            return HeroSlide.objects.all().select_related('article').order_by('order', '-id')
+        return qs.order_by('order', '-id')

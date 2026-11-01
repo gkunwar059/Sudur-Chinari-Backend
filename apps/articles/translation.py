@@ -1,5 +1,5 @@
 from modeltranslation.translator import register, TranslationOptions
-from .models import Category, Author, Article, BreakingNews
+from .models import Category, Author, Article, BreakingNews, HeroSlide
 
 @register(Category)
 class CategoryTranslationOptions(TranslationOptions):
@@ -16,3 +16,7 @@ class ArticleTranslationOptions(TranslationOptions):
 @register(BreakingNews)
 class BreakingNewsTranslationOptions(TranslationOptions):
     fields = ('text',)
+
+@register(HeroSlide)
+class HeroSlideTranslationOptions(TranslationOptions):
+    fields = ('title', 'subtitle', 'excerpt', 'primary_button_text', 'secondary_button_text')

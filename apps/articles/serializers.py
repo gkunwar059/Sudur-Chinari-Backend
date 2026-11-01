@@ -5,7 +5,7 @@ from apps.districts.models import District
 from apps.districts.serializers import DistrictSerializer
 from .models import (
     Category, Author, Article, Tag, ArticleComment,
-    BreakingNews, HomePagePlacement
+    BreakingNews, HomePagePlacement, ArticleBookmark, HeroSlide
 )
 
 User = get_user_model()
@@ -133,6 +133,7 @@ class ArticleSerializer(TranslatedAdminSerializerMixin, serializers.ModelSeriali
 
 class ArticleCommentSerializer(serializers.ModelSerializer):
     replyCount = serializers.SerializerMethodField()
+    authorName = serializers.CharField(required=False, allow_blank=True, default='')
 
     class Meta:
         model = ArticleComment
@@ -140,11 +141,32 @@ class ArticleCommentSerializer(serializers.ModelSerializer):
         read_only_fields = ['user']
         extra_kwargs = {
             'article': {'required': False},
-            'parent': {'required': False, 'allow_null': True}
+            'parent': {'required': False, 'allow_null': True},
+            'authorName': {'required': False, 'allow_blank': True},
         }
 
     def get_replyCount(self, obj):
         return obj.replies.count()
+
+    def to_internal_value(self, data):
+        if hasattr(data, 'dict'):
+            mapped = data.dict()
+        else:
+            mapped = dict(data)
+
+        if 'user_name' in mapped and not mapped.get('authorName'):
+            mapped['authorName'] = mapped['user_name']
+
+        request = self.context.get('request')
+        if request and getattr(request, 'user', None) and request.user.is_authenticated:
+            user = request.user
+            name = (user.get_full_name() or '').strip()
+            if not name:
+                name = getattr(user, 'name', '') or user.username or user.email or 'प्रमाणित प्रयोगकर्ता'
+            if not mapped.get('authorName'):
+                mapped['authorName'] = name
+
+        return super().to_internal_value(mapped)
 
     def validate(self, attrs):
         if 'article' not in attrs:
@@ -173,6 +195,8 @@ class ArticleCommentSerializer(serializers.ModelSerializer):
         ret = super().to_representation(instance)
         ret['articleId'] = str(instance.article_id)
         ret['parentId'] = str(instance.parent_id) if instance.parent_id else None
+        ret['user_name'] = instance.authorName
+        ret['created_at'] = instance.createdAt
         return ret
 
 
@@ -188,3 +212,37 @@ class HomePagePlacementSerializer(serializers.ModelSerializer):
     class Meta:
         model = HomePagePlacement
         fields = ['id', 'section_name', 'articles']
+
+
+class ArticleBookmarkSerializer(serializers.ModelSerializer):
+    article_slug = serializers.CharField(source='article.slug', read_only=True)
+    article_title = serializers.CharField(source='article.title', read_only=True)
+    article = ArticleSerializer(read_only=True)
+    article_id = serializers.PrimaryKeyRelatedField(
+        queryset=Article.objects.all(), source='article', write_only=True
+    )
+
+    class Meta:
+        model = ArticleBookmark
+        fields = ['id', 'article', 'article_id', 'article_slug', 'article_title', 'created_at']
+        read_only_fields = ['created_at']
+
+
+class HeroSlideSerializer(TranslatedAdminSerializerMixin, serializers.ModelSerializer):
+    image = serializers.SerializerMethodField()
+    article_slug = serializers.CharField(source='article.slug', read_only=True)
+    article_title = serializers.CharField(source='article.title', read_only=True)
+
+    class Meta:
+        model = HeroSlide
+        fields = [
+            'id', 'title', 'subtitle', 'excerpt',
+            'image', 'image_url', 'article', 'article_slug', 'article_title',
+            'primary_button_text', 'primary_button_url',
+            'secondary_button_text', 'secondary_button_url',
+            'order', 'is_active', 'created_at', 'updated_at'
+        ]
+
+    def get_image(self, obj):
+        img_val = obj.image or obj.image_url or (obj.article.featuredImage if obj.article else None)
+        return make_absolute_url(img_val, self.context.get('request'))

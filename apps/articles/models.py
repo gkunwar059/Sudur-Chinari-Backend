@@ -175,3 +175,51 @@ class HomePagePlacement(models.Model):
 
     def __str__(self):
         return self.section_name
+
+
+class ArticleBookmark(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='article_bookmarks')
+    article = models.ForeignKey(Article, on_delete=models.CASCADE, related_name='bookmarked_by')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Article Bookmark"
+        verbose_name_plural = "Article Bookmarks"
+        unique_together = ('user', 'article')
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.user.username} saved {self.article_id}"
+
+
+class HeroSlide(models.Model):
+    title = models.CharField(max_length=255, default="", verbose_name="Slide Title")
+    subtitle = models.CharField(max_length=255, blank=True, default="", verbose_name="Category / Kicker", help_text="Badge or category text (e.g. परिचय, वन्यजन्तु)")
+    excerpt = models.TextField(blank=True, default="", verbose_name="Slide Description / Excerpt")
+    image = models.ImageField(upload_to="hero_slides/", blank=True, null=True, verbose_name="Hero Image", help_text="Custom banner image upload")
+    image_url = models.CharField(max_length=500, blank=True, default="", verbose_name="Image URL / Path", help_text="Static path or external image (e.g. /images/places/khaptad_national_park.jpg)")
+    article = models.ForeignKey(
+        Article,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='hero_slides',
+        verbose_name="Linked Article",
+        help_text="Optional link to a specific article"
+    )
+    primary_button_text = models.CharField(max_length=100, default="", blank=True, verbose_name="Primary Button Text")
+    primary_button_url = models.CharField(max_length=500, default="/district", blank=True, verbose_name="Primary Button URL")
+    secondary_button_text = models.CharField(max_length=100, default="", blank=True, verbose_name="Secondary Button Text")
+    secondary_button_url = models.CharField(max_length=500, blank=True, default="", verbose_name="Secondary Button URL", help_text="Leave empty to trigger user contribution modal")
+    order = models.PositiveIntegerField(default=0, verbose_name="Order", help_text="Display order in hero slider (0, 1, 2...)")
+    is_active = models.BooleanField(default=True, verbose_name="Is Active", help_text="Show or hide on homepage")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Hero Slide"
+        verbose_name_plural = "Hero Slides"
+        ordering = ['order', '-id']
+
+    def __str__(self):
+        return self.title or f"Hero Slide #{self.id}"
