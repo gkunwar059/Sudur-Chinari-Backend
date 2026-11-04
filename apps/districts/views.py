@@ -1,14 +1,14 @@
-from rest_framework import viewsets
+from rest_framework import viewsets, permissions
 from rest_framework.filters import SearchFilter
 from apps.common.permissions import IsAdminOrReadOnly
 from .models import (
     District, DistrictTheme, DistrictStats, DistrictCulture,
-    DistrictPlace, Partner
+    DistrictPlace, Partner, PhotoSubmission, StorySubmission
 )
 from .serializers import (
     DistrictSerializer, DistrictDetailSerializer, DistrictThemeSerializer,
     DistrictStatsSerializer, DistrictCultureSerializer, DistrictPlaceSerializer,
-    PartnerSerializer
+    PartnerSerializer, PhotoSubmissionSerializer, StorySubmissionSerializer
 )
 
 class DistrictViewSet(viewsets.ModelViewSet):
@@ -62,3 +62,83 @@ class PartnerViewSet(viewsets.ModelViewSet):
             else:
                 qs = qs.filter(district__slug=district_param)
         return qs
+
+
+class PhotoSubmissionViewSet(viewsets.ModelViewSet):
+    queryset = PhotoSubmission.objects.all().order_by('-created_at')
+    serializer_class = PhotoSubmissionSerializer
+
+    def get_permissions(self):
+        if self.action in ['create', 'list', 'retrieve']:
+            return [permissions.AllowAny()]
+        return [permissions.IsAdminUser()]
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        status_param = self.request.query_params.get('status')
+        if status_param:
+            if status_param == 'all' and (self.request.user and self.request.user.is_authenticated and self.request.user.is_staff):
+                pass
+            elif status_param in ['pending', 'rejected']:
+                if self.request.user and self.request.user.is_authenticated and self.request.user.is_staff:
+                    qs = qs.filter(status=status_param)
+                else:
+                    qs = qs.none()
+            else:
+                qs = qs.filter(status=status_param)
+        else:
+            qs = qs.filter(status='approved')
+
+        district = self.request.query_params.get('district') or self.request.query_params.get('district__slug')
+        if district:
+            if str(district).isdigit():
+                qs = qs.filter(district_id=int(district))
+            else:
+                qs = qs.filter(district__slug=district)
+        return qs
+
+    def perform_create(self, serializer):
+        serializer.save(status='pending')
+
+
+class StorySubmissionViewSet(viewsets.ModelViewSet):
+    queryset = StorySubmission.objects.all().order_by('-created_at')
+    serializer_class = StorySubmissionSerializer
+
+    def get_permissions(self):
+        if self.action in ['create', 'list', 'retrieve']:
+            return [permissions.AllowAny()]
+        return [permissions.IsAdminUser()]
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        status_param = self.request.query_params.get('status')
+        if status_param:
+            if status_param == 'all' and (self.request.user and self.request.user.is_authenticated and self.request.user.is_staff):
+                pass
+            elif status_param in ['pending', 'rejected']:
+                if self.request.user and self.request.user.is_authenticated and self.request.user.is_staff:
+                    qs = qs.filter(status=status_param)
+                else:
+                    qs = qs.none()
+            else:
+                qs = qs.filter(status=status_param)
+        else:
+            qs = qs.filter(status='approved')
+
+        district = self.request.query_params.get('district') or self.request.query_params.get('district__slug')
+        if district:
+            if str(district).isdigit():
+                qs = qs.filter(district_id=int(district))
+            else:
+                qs = qs.filter(district__slug=district)
+
+        category = self.request.query_params.get('category') or self.request.query_params.get('main_category')
+        if category and category != 'all':
+            qs = qs.filter(main_category=category)
+
+        return qs
+
+    def perform_create(self, serializer):
+        serializer.save(status='pending')
+

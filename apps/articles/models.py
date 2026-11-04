@@ -13,6 +13,12 @@ LAYOUT_CHOICES = [
     ('stay', 'Stay Layout'),
 ]
 
+SYSTEM_SLUGS = {
+    'news', 'stay', 'politics', 'sports', 'tourism',
+    'society', 'economy', 'education', 'health', 'culture',
+    'opinion', 'agriculture', 'technology', 'national'
+}
+
 class Category(models.Model):
     name = models.CharField(max_length=255, default="")
     slug = models.SlugField(unique=True)
@@ -34,6 +40,10 @@ class Category(models.Model):
     )
     icon = models.CharField(max_length=100, blank=True, default="", help_text="Emoji or icon name")
     image = models.ImageField(upload_to="categories/", blank=True, null=True)
+    is_system = models.BooleanField(
+        default=False,
+        help_text="Protected system category required for frontend routes"
+    )
 
     class Meta:
         verbose_name = "Category"
@@ -44,6 +54,28 @@ class Category(models.Model):
         if self.parent:
             return f"{self.parent.name or self.parent.slug} → {self.name or self.slug}"
         return self.name or self.slug
+
+    def clean(self):
+        super().clean()
+        if self.slug in SYSTEM_SLUGS:
+            self.is_system = True
+        if self.pk:
+            original = Category.objects.filter(pk=self.pk).values('slug', 'is_system').first()
+            if original and (original['slug'] in SYSTEM_SLUGS or original['is_system']):
+                if self.slug != original['slug']:
+                    from django.core.exceptions import ValidationError
+                    raise ValidationError({'slug': f"Category '{original['slug']}' is a protected system category; its slug cannot be changed."})
+
+    def save(self, *args, **kwargs):
+        if self.slug in SYSTEM_SLUGS:
+            self.is_system = True
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        if self.slug in SYSTEM_SLUGS or self.is_system:
+            from django.core.exceptions import ValidationError
+            raise ValidationError(f"Category '{self.slug}' is a protected system category and cannot be deleted.")
+        super().delete(*args, **kwargs)
 
 
 class Author(models.Model):
@@ -76,15 +108,28 @@ class Article(models.Model):
     slug = models.SlugField(unique=True, max_length=255)
     excerpt = models.TextField(default="")
     content = models.TextField(default="")
-    featuredImage = models.CharField(max_length=500, blank=True, null=True)
-    imageCaption = models.CharField(max_length=255, blank=True, default="")
-    meta_title = models.CharField(max_length=255, blank=True, default="")
-    meta_description = models.TextField(blank=True, default="")
+    image = models.ImageField(
+        upload_to="articles/",
+        blank=True,
+        null=True,
+        verbose_name="Upload Featured Image",
+        help_text="Upload article cover photo directly from your device"
+    )
+    featuredImage = models.CharField(
+        max_length=500,
+        blank=True,
+        null=True,
+        verbose_name="Featured Image URL / Path",
+        help_text="Optional external image URL or static asset path (e.g. /images/...)"
+    )
+    imageCaption = models.CharField(max_length=255, blank=True, default="", verbose_name="Image Caption")
+    meta_title = models.CharField(max_length=255, blank=True, default="", verbose_name="Meta Title")
+    meta_description = models.TextField(blank=True, default="", verbose_name="Meta Description")
     
     author = models.ForeignKey(Author, on_delete=models.CASCADE, related_name='articles')
     category = models.ForeignKey(
         Category, 
-        on_delete=models.CASCADE, 
+        on_delete=models.PROTECT, 
         related_name='articles',
         limit_choices_to=~Q(layout_type__in=['stayor_hotel', 'stay'])
     )
@@ -97,15 +142,15 @@ class Article(models.Model):
     )
     
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='draft')
-    publishedAt = models.DateTimeField(null=True, blank=True)
-    updatedAt = models.DateTimeField(auto_now=True)
-    created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    publishedAt = models.DateTimeField(null=True, blank=True, verbose_name="Published At")
+    updatedAt = models.DateTimeField(auto_now=True, verbose_name="Updated At")
+    created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True, verbose_name="Created At")
     
     featured = models.BooleanField(default=False)
     breaking = models.BooleanField(default=False)
     popular = models.BooleanField(default=False)
     
-    readTime = models.IntegerField(default=5)
+    readTime = models.IntegerField(default=5, verbose_name="Read Time (mins)")
     views = models.IntegerField(default=0)
     likes = models.IntegerField(default=0)
 
@@ -116,6 +161,11 @@ class Article(models.Model):
 
     def __str__(self):
         return self.title or self.slug
+
+    def save(self, *args, **kwargs):
+        if self.image and not self.featuredImage:
+            self.featuredImage = self.image.url
+        super().save(*args, **kwargs)
 
 
 class Tag(models.Model):
@@ -175,3 +225,51 @@ class HomePagePlacement(models.Model):
 
     def __str__(self):
         return self.section_name
+
+
+class ArticleBookmark(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='article_bookmarks')
+    article = models.ForeignKey(Article, on_delete=models.CASCADE, related_name='bookmarked_by')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Article Bookmark"
+        verbose_name_plural = "Article Bookmarks"
+        unique_together = ('user', 'article')
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.user.username} saved {self.article_id}"
+
+
+class HeroSlide(models.Model):
+    title = models.CharField(max_length=255, default="", verbose_name="Slide Title")
+    subtitle = models.CharField(max_length=255, blank=True, default="", verbose_name="Category / Kicker", help_text="Badge or category text (e.g. परिचय, वन्यजन्तु)")
+    excerpt = models.TextField(blank=True, default="", verbose_name="Slide Description / Excerpt")
+    image = models.ImageField(upload_to="hero_slides/", blank=True, null=True, verbose_name="Hero Image", help_text="Custom banner image upload")
+    image_url = models.CharField(max_length=500, blank=True, default="", verbose_name="Image URL / Path", help_text="Static path or external image (e.g. /images/places/khaptad_national_park.jpg)")
+    article = models.ForeignKey(
+        Article,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='hero_slides',
+        verbose_name="Linked Article",
+        help_text="Optional link to a specific article"
+    )
+    primary_button_text = models.CharField(max_length=100, default="", blank=True, verbose_name="Primary Button Text")
+    primary_button_url = models.CharField(max_length=500, default="/district", blank=True, verbose_name="Primary Button URL")
+    secondary_button_text = models.CharField(max_length=100, default="", blank=True, verbose_name="Secondary Button Text")
+    secondary_button_url = models.CharField(max_length=500, blank=True, default="", verbose_name="Secondary Button URL", help_text="Leave empty to trigger user contribution modal")
+    order = models.PositiveIntegerField(default=0, verbose_name="Order", help_text="Display order in hero slider (0, 1, 2...)")
+    is_active = models.BooleanField(default=True, verbose_name="Is Active", help_text="Show or hide on homepage")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Hero Slide"
+        verbose_name_plural = "Hero Slides"
+        ordering = ['order', '-id']
+
+    def __str__(self):
+        return self.title or f"Hero Slide #{self.id}"

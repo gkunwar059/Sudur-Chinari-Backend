@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
 from datetime import datetime
+from django.core.management import call_command
 from django.core.management.base import BaseCommand
 from django.db import transaction
 from django.utils import timezone
@@ -53,6 +54,9 @@ class Command(BaseCommand):
 
         # 8. Popup Roadblock Ads
         self.seed_popup_ads()
+
+        # 9. Top up every table to the minimum row count
+        call_command('seed_min_data')
 
         self.stdout.write(self.style.SUCCESS("Database seeding completed successfully!"))
 

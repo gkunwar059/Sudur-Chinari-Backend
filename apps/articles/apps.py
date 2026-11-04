@@ -5,3 +5,6 @@ class ArticlesConfig(AppConfig):
     name = 'apps.articles'
     label = 'articles'
     verbose_name = 'Articles & Editorial'
+
+    def ready(self):
+        import apps.articles.signals  # noqa: F401
