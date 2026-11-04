@@ -19,7 +19,7 @@ class Hotel(models.Model):
     hotel_type = models.CharField(max_length=100, help_text="e.g. Resort, Homestay, Boutique Hotel")
     category = models.ForeignKey(
         'articles.Category', 
-        on_delete=models.CASCADE, 
+        on_delete=models.PROTECT, 
         related_name='hotels',
         limit_choices_to={'layout_type__in': ['stayor_hotel', 'stay']}
     )

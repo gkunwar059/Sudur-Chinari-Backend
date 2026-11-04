@@ -19,13 +19,13 @@ class CategorySerializer(TranslatedAdminSerializerMixin, serializers.ModelSerial
 
     class Meta:
         model = Category
-        fields = ['id', 'slug', 'name', 'icon', 'image', 'parent_id', 'parent_slug', 'layout_type', 'order', 'show_in_menu']
+        fields = ['id', 'slug', 'name', 'icon', 'image', 'parent_id', 'parent_slug', 'layout_type', 'order', 'show_in_menu', 'is_system']
 
 
 class CategoryChildSerializer(TranslatedAdminSerializerMixin, serializers.ModelSerializer):
     class Meta:
         model = Category
-        fields = ['id', 'slug', 'name', 'icon', 'image', 'layout_type', 'order']
+        fields = ['id', 'slug', 'name', 'icon', 'image', 'layout_type', 'order', 'is_system']
 
 
 class CategoryMenuSerializer(TranslatedAdminSerializerMixin, serializers.ModelSerializer):
@@ -34,7 +34,7 @@ class CategoryMenuSerializer(TranslatedAdminSerializerMixin, serializers.ModelSe
 
     class Meta:
         model = Category
-        fields = ['id', 'slug', 'name', 'icon', 'image', 'layout_type', 'order', 'parent', 'children']
+        fields = ['id', 'slug', 'name', 'icon', 'image', 'layout_type', 'order', 'parent', 'children', 'is_system']
 
     def get_children(self, obj):
         kids = getattr(obj, 'visible_children', None)
@@ -81,12 +81,18 @@ class ArticleSerializer(TranslatedAdminSerializerMixin, serializers.ModelSeriali
     class Meta:
         model = Article
         fields = [
-            'id', 'title', 'slug', 'excerpt', 'content', 'featuredImage', 'imageCaption',
+            'id', 'title', 'slug', 'excerpt', 'content', 'image', 'featuredImage', 'imageCaption',
             'meta_title', 'meta_description', 'og_image',
             'author', 'category', 'district', 'tags', 'status', 'publishedAt', 'updatedAt', 'created_at',
             'featured', 'breaking', 'popular', 'readTime', 'views', 'likes', 'commentsCount',
             'author_id', 'category_id', 'district_id'
         ]
+
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        if instance.image and not ret.get('featuredImage'):
+            ret['featuredImage'] = instance.image.url
+        return ret
 
     def to_internal_value(self, data):
         if isinstance(data, dict):
@@ -128,7 +134,8 @@ class ArticleSerializer(TranslatedAdminSerializerMixin, serializers.ModelSeriali
         return obj.comments.count()
 
     def get_og_image(self, obj):
-        return make_absolute_url(obj.featuredImage, self.context.get('request'))
+        img_url = obj.image.url if obj.image else obj.featuredImage
+        return make_absolute_url(img_url, self.context.get('request'))
 
 
 class ArticleCommentSerializer(serializers.ModelSerializer):

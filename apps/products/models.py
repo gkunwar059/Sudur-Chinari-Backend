@@ -1,11 +1,14 @@
 from django.db import models
 
+SYSTEM_PRODUCT_SLUGS = {'dairy', 'grains', 'fruits', 'spices', 'handicrafts'}
+
 class ProductCategory(models.Model):
     name = models.CharField(max_length=255, default="", verbose_name="Category Name")
     slug = models.SlugField(unique=True, max_length=150)
     icon = models.CharField(max_length=100, blank=True, default="", help_text="Emoji or icon name (e.g. 🥛, 🌾, 🍎)")
     order = models.PositiveIntegerField(default=0, help_text="Display order in filters")
     is_active = models.BooleanField(default=True)
+    is_system = models.BooleanField(default=True, help_text="Protected system product category for frontend")
 
     class Meta:
         verbose_name = "Product Category"
@@ -14,6 +17,28 @@ class ProductCategory(models.Model):
 
     def __str__(self):
         return self.name or self.slug
+
+    def clean(self):
+        super().clean()
+        if self.slug in SYSTEM_PRODUCT_SLUGS:
+            self.is_system = True
+        if self.pk:
+            original = ProductCategory.objects.filter(pk=self.pk).values('slug', 'is_system').first()
+            if original and (original['slug'] in SYSTEM_PRODUCT_SLUGS or original['is_system']):
+                if self.slug != original['slug']:
+                    from django.core.exceptions import ValidationError
+                    raise ValidationError({'slug': f"Product category '{original['slug']}' is a protected system category; its slug cannot be changed."})
+
+    def save(self, *args, **kwargs):
+        if self.slug in SYSTEM_PRODUCT_SLUGS:
+            self.is_system = True
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        if self.slug in SYSTEM_PRODUCT_SLUGS or self.is_system:
+            from django.core.exceptions import ValidationError
+            raise ValidationError(f"Product category '{self.slug}' is a protected system category and cannot be deleted.")
+        super().delete(*args, **kwargs)
 
 
 class LocalProduct(models.Model):
@@ -25,7 +50,7 @@ class LocalProduct(models.Model):
 
     name = models.CharField(max_length=255, default="", verbose_name="Product Name")
     slug = models.SlugField(unique=True, max_length=200)
-    category = models.ForeignKey(ProductCategory, on_delete=models.CASCADE, related_name='products')
+    category = models.ForeignKey(ProductCategory, on_delete=models.PROTECT, related_name='products')
     district = models.ForeignKey('districts.District', on_delete=models.CASCADE, related_name='local_products')
     description = models.TextField(blank=True, default="", verbose_name="Product Description")
     farmer_name = models.CharField(max_length=255, blank=True, default="", verbose_name="Farmer / Business Name")
