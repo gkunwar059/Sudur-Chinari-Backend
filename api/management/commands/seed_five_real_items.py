@@ -57,7 +57,7 @@ class Command(BaseCommand):
             'authors', 'products', 'producers', 'articles', 'hero_slides',
             'banner_ads', 'popup_ads', 'yatayat', 'photo_stories', 'partners',
             'districts/slider', 'hotels/hero', 'hotels/rooms', 'hotels/gallery',
-            'contributions/photos', 'contributions/stories'
+            'contributions/photos', 'contributions/stories', 'videos/thumbnails'
         ]
         for d in dirs:
             os.makedirs(os.path.join(self.media_root, d), exist_ok=True)
@@ -163,6 +163,13 @@ class Command(BaseCommand):
         self.copy_file(f"{self.frontend_images}/karnali_bridge.jpg", "contributions/photos/karnali_bridge_view.jpg")
         self.copy_file(f"{self.frontend_images}/places/api_himal.jpg", "contributions/photos/api_glow.jpg")
         self.copy_file(f"{self.frontend_images}/places/ugratara_temple.jpg", "contributions/photos/amargadhi_fort_view.jpg")
+
+        # Real photography for video thumbnails
+        self.copy_file(f"{self.frontend_images}/places/khaptad_national_park.jpg", "videos/thumbnails/video_khaptad.jpg")
+        self.copy_file(f"{self.frontend_images}/karnali_bridge.jpg", "videos/thumbnails/video_karnali.jpg")
+        self.copy_file(f"{self.frontend_images}/places/dodhara_chandani.jpg", "videos/thumbnails/video_shuklaphanta.jpg")
+        self.copy_file(f"{self.frontend_images}/ghodaghodi_lake.jpg", "videos/thumbnails/video_gaura.jpg")
+        self.copy_file(f"{self.frontend_images}/places/api_himal.jpg", "videos/thumbnails/video_api.jpg")
 
         # Hotel hero, room, and gallery assets fallback
         hotel_asset_mappings = [
@@ -804,11 +811,11 @@ class Command(BaseCommand):
         dist_achham = District.objects.filter(slug='achham').first()
 
         videos_data = [
-            ("Journey Across Khaptad: 22 Meadows and Mystical Landscapes", "खप्तडको यात्रा: २२ पाटन र रहस्यमयी प्राकृतिक सौन्दर्य", "media/seed/videos/videos-001.jpg", "jNQXAC9IVRw", "12:45", 3420, 245, dist_doti),
-            ("Karnali River Rafting Expedition and Wildlife Secrets", "कर्णाली नदीमा र्याफ्टिङ यात्रा र जलचरहरूको संसार", "media/seed/videos/videos-002.jpg", "7QUtEmk3Y4E", "08:30", 2180, 180, dist_kailali),
-            ("Shuklaphanta Swamp Deer: Largest Herd in Asia", "शुक्लाफाँटाको फाँटमा बाह्रसिंगाको विशाल बथान", "media/seed/videos/videos-003.jpg", "ScMzIvxBSi4", "15:20", 4120, 310, dist_kanchanpur),
-            ("Living Traditions of Far-West: Gaura and Deuda Dance", "सुदूरपश्चिमको मौलिक गौरा पर्व र देउडा भाका", "media/seed/videos/videos-004.jpg", "kJQP7kiw5Fk", "09:50", 5290, 420, dist_achham),
-            ("Api Himal Trekking Guide: Untouched Wilderness of Darchula", "अपि हिमाल पदमार्ग: दार्चुलाको अद्वितीय हिमाली यात्रा", "media/seed/videos/videos-005.jpg", "fJ9rUzIMcZQ", "18:15", 3890, 275, dist_darchula),
+            ("Journey Across Khaptad: 22 Meadows and Mystical Landscapes", "खप्तडको यात्रा: २२ पाटन र रहस्यमयी प्राकृतिक सौन्दर्य", "videos/thumbnails/video_khaptad.jpg", "jNQXAC9IVRw", "12:45", 3420, 245, dist_doti),
+            ("Karnali River Rafting Expedition and Wildlife Secrets", "कर्णाली नदीमा र्याफ्टिङ यात्रा र जलचरहरूको संसार", "videos/thumbnails/video_karnali.jpg", "7QUtEmk3Y4E", "08:30", 2180, 180, dist_kailali),
+            ("Shuklaphanta Swamp Deer: Largest Herd in Asia", "शुक्लाफाँटाको फाँटमा बाह्रसिंगाको विशाल बथान", "videos/thumbnails/video_shuklaphanta.jpg", "ScMzIvxBSi4", "15:20", 4120, 310, dist_kanchanpur),
+            ("Living Traditions of Far-West: Gaura and Deuda Dance", "सुदूरपश्चिमको मौलिक गौरा पर्व र देउडा भाका", "videos/thumbnails/video_gaura.jpg", "kJQP7kiw5Fk", "09:50", 5290, 420, dist_achham),
+            ("Api Himal Trekking Guide: Untouched Wilderness of Darchula", "अपि हिमाल पदमार्ग: दार्चुलाको अद्वितीय हिमाली यात्रा", "videos/thumbnails/video_api.jpg", "fJ9rUzIMcZQ", "18:15", 3890, 275, dist_darchula),
         ]
 
         VideoItem.objects.all().delete()
@@ -816,7 +823,7 @@ class Command(BaseCommand):
         for t_en, t_ne, thm, yid, dur, vw, lk, dist in videos_data:
             v = VideoItem.objects.create(
                 title=t_en, title_en=t_en, title_ne=t_ne,
-                thumbnail=f"/{thm}",
+                thumbnail=thm,
                 video_url=f"https://www.youtube.com/watch?v={yid}",
                 youtube_id=yid,
                 duration=dur, views=vw, likes=lk,

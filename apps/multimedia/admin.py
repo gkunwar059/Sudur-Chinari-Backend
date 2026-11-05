@@ -1,12 +1,24 @@
 from django.contrib import admin
+from django.utils.safestring import mark_safe
 from apps.common.admin_base import BaseTranslatedAdmin
 from .models import VideoItem, VideoComment, PhotoStory, PhotoStoryImage, VideoLike, VideoCommentLike
 
 @admin.register(VideoItem)
 class VideoItemAdmin(BaseTranslatedAdmin):
-    list_display = ('title_en', 'district', 'duration', 'views', 'likes', 'isShort', 'publishedAt', 'translation_complete')
+    list_display = ('thumbnail_preview', 'title_en', 'district', 'duration', 'views', 'likes', 'isShort', 'publishedAt', 'translation_complete')
+    list_display_links = ('thumbnail_preview', 'title_en')
     list_filter = ('isShort', 'district')
     search_fields = ('title_en', 'title_ne', 'youtube_id')
+    readonly_fields = ('thumbnail_preview',)
+
+    def thumbnail_preview(self, obj):
+        if obj.thumbnail:
+            url = obj.thumbnail.url if hasattr(obj.thumbnail, 'url') else str(obj.thumbnail)
+            if not url.startswith(('http://', 'https://', '/')):
+                url = f"/media/{url}"
+            return mark_safe(f'<img src="{url}" style="width: 72px; height: 48px; object-fit: cover; border-radius: 4px; border: 1px solid #ddd;" />')
+        return "-"
+    thumbnail_preview.short_description = "Thumbnail"
 
 
 @admin.register(VideoComment)

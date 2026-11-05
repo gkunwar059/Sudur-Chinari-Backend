@@ -5,7 +5,14 @@ User = get_user_model()
 
 class VideoItem(models.Model):
     title = models.CharField(max_length=255, default="")
-    thumbnail = models.URLField(max_length=500)
+    thumbnail = models.ImageField(
+        upload_to="videos/thumbnails/",
+        blank=True,
+        null=True,
+        max_length=500,
+        verbose_name="Thumbnail Image",
+        help_text="Upload video thumbnail directly from your device"
+    )
     video_url = models.CharField(max_length=500, blank=True, default="", help_text="Direct MP4 or streaming video URL")
     youtube_id = models.CharField(max_length=100, blank=True, default="", help_text="YouTube Video ID (e.g. jNQXAC9IVRw)")
     duration = models.CharField(max_length=20)
