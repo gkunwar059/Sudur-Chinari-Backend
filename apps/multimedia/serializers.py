@@ -57,6 +57,25 @@ class VideoCommentSerializer(serializers.ModelSerializer):
 
 import re
 
+class HybridThumbnailField(serializers.Field):
+    """Accepts both multipart file uploads and string URLs / relative media paths."""
+    def to_internal_value(self, data):
+        if not data:
+            return None
+        if hasattr(data, 'read') or hasattr(data, 'chunks'):
+            return data
+        if isinstance(data, str):
+            return data.strip()
+        return data
+
+    def to_representation(self, value):
+        if not value:
+            return None
+        if hasattr(value, 'url'):
+            return value.url
+        return str(value)
+
+
 class VideoItemSerializer(TranslatedAdminSerializerMixin, serializers.ModelSerializer):
     district = DistrictSerializer(read_only=True)
     district_id = serializers.CharField(write_only=True, required=False, allow_blank=True, allow_null=True)
@@ -66,7 +85,7 @@ class VideoItemSerializer(TranslatedAdminSerializerMixin, serializers.ModelSeria
     title = serializers.CharField(required=False, allow_blank=True, default="")
     title_en = serializers.CharField(required=False, allow_blank=True)
     title_ne = serializers.CharField(required=False, allow_blank=True)
-    thumbnail = serializers.CharField(required=False, allow_blank=True, default="")
+    thumbnail = HybridThumbnailField(required=False, allow_null=True)
     duration = serializers.CharField(required=False, allow_blank=True, default="3:00")
     publishedAt = serializers.DateTimeField(required=False)
     youtube_id = serializers.CharField(required=False, allow_blank=True, default="")
