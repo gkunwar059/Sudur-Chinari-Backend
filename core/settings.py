@@ -26,28 +26,62 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-82f#&-qg(+h1go!t-&rvz
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG', 'True').lower() in ('true', '1', 'yes')
 
+# Allow underscores in hostnames for Docker container names (e.g. sudur_backend)
+# By default, Django enforces RFC 1034/1035 which disallows underscores.
+import re
+import django.http.request
+
+django.http.request.host_validation_re = re.compile(
+    r"^([a-z0-9._-]+|\[[a-f0-9]*:[a-f0-9\.:]+\])(:[0-9]+)?$",
+    re.IGNORECASE,
+)
+
 allowed_hosts_env = os.environ.get('ALLOWED_HOSTS', '*')
 if allowed_hosts_env == '*':
     ALLOWED_HOSTS = ['*']
 else:
-    ALLOWED_HOSTS = [h.strip() for h in allowed_hosts_env.split(',') if h.strip()]
+    ALLOWED_HOSTS = [h.strip().strip('"').strip("'") for h in allowed_hosts_env.split(',') if h.strip()]
+
+# Internal hosts that must always be allowed for Docker container-to-container and healthcheck traffic
+INTERNAL_HOSTS = [
+    'localhost',
+    '127.0.0.1',
+    '0.0.0.0',
+    'backend',
+    'sudur-backend',
+    'sudur_backend',
+    'testserver',
+]
+if '*' not in ALLOWED_HOSTS:
+    for host in INTERNAL_HOSTS:
+        if host not in ALLOWED_HOSTS:
+            ALLOWED_HOSTS.append(host)
 
 csrf_origins_env = os.environ.get('CSRF_TRUSTED_ORIGINS', '')
 if csrf_origins_env:
-    CSRF_TRUSTED_ORIGINS = [o.strip() for o in csrf_origins_env.split(',') if o.strip()]
+    CSRF_TRUSTED_ORIGINS = [o.strip().strip('"').strip("'") for o in csrf_origins_env.split(',') if o.strip()]
 else:
-    CSRF_TRUSTED_ORIGINS = [
-        'http://localhost',
-        'http://localhost:80',
-        'http://localhost:3000',
-        'http://localhost:8000',
-        'http://localhost:8001',
-        'http://127.0.0.1',
-        'http://127.0.0.1:80',
-        'http://127.0.0.1:3000',
-        'http://127.0.0.1:8000',
-        'http://127.0.0.1:8001',
-    ]
+    CSRF_TRUSTED_ORIGINS = []
+
+# Always ensure standard local & docker development origins are trusted
+DEFAULT_CSRF_ORIGINS = [
+    'http://localhost',
+    'http://localhost:80',
+    'http://localhost:3000',
+    'http://localhost:8000',
+    'http://localhost:8001',
+    'http://127.0.0.1',
+    'http://127.0.0.1:80',
+    'http://127.0.0.1:3000',
+    'http://127.0.0.1:8000',
+    'http://127.0.0.1:8001',
+    'http://sudur-backend:8000',
+    'http://sudur_backend:8000',
+    'http://backend:8000',
+]
+for origin in DEFAULT_CSRF_ORIGINS:
+    if origin not in CSRF_TRUSTED_ORIGINS:
+        CSRF_TRUSTED_ORIGINS.append(origin)
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 USE_X_FORWARDED_HOST = True

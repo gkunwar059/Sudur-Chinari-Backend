@@ -55,7 +55,11 @@ services:
       db:
         condition: service_healthy
     networks:
-      - sudur_network
+      sudur_network:
+        aliases:
+          - sudur_backend
+          - sudur-backend
+          - backend
 
 volumes:
   postgres_data:
