@@ -4,6 +4,7 @@ from django.contrib.auth.backends import ModelBackend
 from django.db.models import Q
 
 User = get_user_model()
+NEPALI_DIGITS = str.maketrans('०१२३४५६७८९', '0123456789')
 
 class EmailOrUsernameModelBackend(ModelBackend):
     def authenticate(self, request, username=None, password=None, **kwargs):
@@ -13,11 +14,17 @@ class EmailOrUsernameModelBackend(ModelBackend):
         if not username:
             return None
             
-        username_str = str(username).strip()
+        username_str = str(username).strip().translate(NEPALI_DIGITS)
         cleaned_digits = re.sub(r'[\s\-\(\)]', '', username_str)
         
+        phone_10 = cleaned_digits
+        if phone_10.startswith('+977'):
+            phone_10 = phone_10[4:]
+        elif phone_10.startswith('977') and len(phone_10) == 13:
+            phone_10 = phone_10[3:]
+
         try:
-            # Allow login with username, email, or phone number
+            # Allow login with username, email, or phone number (with or without +977)
             q_filter = (
                 Q(username__iexact=username_str) |
                 Q(email__iexact=username_str) |
@@ -25,6 +32,8 @@ class EmailOrUsernameModelBackend(ModelBackend):
             )
             if cleaned_digits and cleaned_digits != username_str:
                 q_filter |= Q(profile__phone=cleaned_digits)
+            if phone_10 and phone_10 != username_str and phone_10 != cleaned_digits:
+                q_filter |= Q(profile__phone=phone_10)
                 
             user = User.objects.filter(q_filter).first()
             if not user:

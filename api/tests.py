@@ -15,31 +15,37 @@ class TranslationAPITestCase(APITestCase):
         )
 
         # Create Category
-        self.category = Category.objects.create(
+        self.category, _ = Category.objects.get_or_create(
             slug='politics',
-            name_en='Politics',
-            name_ne='राजनीति',
-            image=None
+            defaults={
+                'name_en': 'Politics',
+                'name_ne': 'राजनीति',
+                'image': None
+            }
         )
 
         # Create Author
-        self.author = Author.objects.create(
+        self.author, _ = Author.objects.get_or_create(
             slug='ram-sharma',
-            name_en='Ram Sharma',
-            name_ne='राम शर्मा',
-            bio_en='Senior Journalist',
-            bio_ne='वरिष्ठ पत्रकार',
-            role='Journalist'
+            defaults={
+                'name_en': 'Ram Sharma',
+                'name_ne': 'राम शर्मा',
+                'bio_en': 'Senior Journalist',
+                'bio_ne': 'वरिष्ठ पत्रकार',
+                'role': 'Journalist'
+            }
         )
 
         # Create District
-        self.district = District.objects.create(
+        self.district, _ = District.objects.get_or_create(
             slug='kailali',
-            name_en='Kailali',
-            name_ne='कैलाली',
-            description_en='Kailali district description in English',
-            description_ne='कैलाली जिल्लाको विवरण',
-            heroImage='/images/districts/kailali.jpg'
+            defaults={
+                'name_en': 'Kailali',
+                'name_ne': 'कैलाली',
+                'description_en': 'Kailali district description in English',
+                'description_ne': 'कैलाली जिल्लाको विवरण',
+                'heroImage': '/images/districts/kailali.jpg'
+            }
         )
 
         # Create Article with complete Nepali translation

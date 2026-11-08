@@ -11,8 +11,8 @@ User = get_user_model()
 class LocalProductApiTests(TestCase):
     def setUp(self):
         self.client = APIClient()
-        self.district = District.objects.create(name='Baitadi', slug='baitadi')
-        self.category = ProductCategory.objects.create(name='Fruits', slug='fruits')
+        self.district, _ = District.objects.get_or_create(slug='baitadi', defaults={'name': 'Baitadi'})
+        self.category, _ = ProductCategory.objects.get_or_create(slug='fruits', defaults={'name': 'Fruits'})
         self.staff_user = User.objects.create_superuser(
             username='staff_admin',
             email='staff@example.com',

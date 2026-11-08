@@ -9,9 +9,9 @@ from apps.yatayat.models import TransportService
 class GlobalSearchAndCommonApiTests(TestCase):
     def setUp(self):
         self.client = APIClient()
-        self.district = District.objects.create(name='Kailali', slug='kailali')
-        self.category = Category.objects.create(name='Economy', slug='economy')
-        self.author = Author.objects.create(name='Reporter 1')
+        self.district, _ = District.objects.get_or_create(slug='kailali', defaults={'name': 'Kailali'})
+        self.category, _ = Category.objects.get_or_create(slug='economy', defaults={'name': 'Economy'})
+        self.author, _ = Author.objects.get_or_create(name='Reporter 1')
 
         # Published article vs Draft article
         self.published_article = Article.objects.create(
