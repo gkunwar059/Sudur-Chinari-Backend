@@ -40,10 +40,10 @@ class BannerAd(models.Model):
 
     PLACEMENT_CHOICES = (
         ('top-leaderboard', 'Top Leaderboard (Header - 970x90 / 728x90)'),
-        ('billboard-mid', 'Billboard Mid (Between sections - 1200x120)'),
-        ('sidebar', 'Sidebar Square / Rectangle (300x250 / 336x280)'),
+        ('billboard-mid', 'Billboard Mid (Between sections - 970x250)'),
+        ('sidebar', 'Sidebar MREC (300x250 / 336x280)'),
         ('in-article', 'In-Article Banner (728x90 / 300x250)'),
-        ('bottom-strip', 'Bottom Strip (Footer area - 1200x100)'),
+        ('bottom-strip', 'Bottom Strip (Footer area - 970x90 / 728x90)'),
         ('popup-roadblock', 'Popup Roadblock Splash'),
     )
 
