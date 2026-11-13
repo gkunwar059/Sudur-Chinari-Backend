@@ -44,6 +44,29 @@ class DistrictPlaceViewSet(viewsets.ModelViewSet):
     queryset = DistrictPlace.objects.select_related('district').all()
     serializer_class = DistrictPlaceSerializer
     permission_classes = [IsAdminOrReadOnly]
+    lookup_field = 'slug'
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        district_param = self.request.query_params.get('district') or self.request.query_params.get('district__slug')
+        if district_param:
+            if str(district_param).isdigit():
+                qs = qs.filter(district_id=int(district_param))
+            else:
+                qs = qs.filter(district__slug=district_param)
+        return qs
+
+    def get_object(self):
+        lookup_val = self.kwargs.get(self.lookup_url_kwarg or self.lookup_field)
+        if lookup_val:
+            if str(lookup_val).isdigit():
+                obj = self.get_queryset().filter(id=int(lookup_val)).first()
+                if obj:
+                    return obj
+            obj = self.get_queryset().filter(slug__iexact=lookup_val).first()
+            if obj:
+                return obj
+        return super().get_object()
 
 
 class PartnerViewSet(viewsets.ModelViewSet):

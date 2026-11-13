@@ -18,7 +18,26 @@ class DistrictCultureTranslationOptions(TranslationOptions):
 
 @register(DistrictPlace)
 class DistrictPlaceTranslationOptions(TranslationOptions):
-    fields = ('title', 'description')
+    fields = (
+        'title',
+        'description',
+        'highlight',
+        'overview',
+        'history',
+        'location',
+        'elevation',
+        'area_or_size',
+        'best_time_to_visit',
+        'opening_hours',
+        'entry_fee',
+        'weather_summary',
+        'how_to_reach',
+        'festivals',
+        'local_cuisine',
+        'traditions',
+        'languages',
+        'travel_advisory',
+    )
 
 @register(DistrictSliderImage)
 class DistrictSliderImageTranslationOptions(TranslationOptions):

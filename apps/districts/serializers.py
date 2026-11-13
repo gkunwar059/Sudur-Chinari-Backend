@@ -38,11 +38,40 @@ class DistrictCultureSerializer(TranslatedAdminSerializerMixin, serializers.Mode
 
 
 class DistrictPlaceSerializer(TranslatedAdminSerializerMixin, serializers.ModelSerializer):
+    slug = serializers.SlugField(required=False, allow_blank=True)
+    district_slug = serializers.CharField(source='district.slug', read_only=True)
     image = serializers.SerializerMethodField()
 
     class Meta:
         model = DistrictPlace
-        fields = ['id', 'title', 'description', 'category', 'image', 'highlight']
+        fields = [
+            'id',
+            'district',
+            'district_slug',
+            'slug',
+            'title',
+            'description',
+            'category',
+            'image',
+            'highlight',
+            'overview',
+            'history',
+            'location',
+            'elevation',
+            'area_or_size',
+            'best_time_to_visit',
+            'opening_hours',
+            'entry_fee',
+            'weather_summary',
+            'how_to_reach',
+            'latitude',
+            'longitude',
+            'festivals',
+            'local_cuisine',
+            'traditions',
+            'languages',
+            'travel_advisory',
+        ]
 
     def get_image(self, obj):
         return make_absolute_url(obj.image, self.context.get('request'))

@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils.text import slugify
 
 class District(models.Model):
     slug = models.SlugField(unique=True)
@@ -94,17 +95,65 @@ class DistrictCulture(models.Model):
 
 
 class DistrictPlace(models.Model):
+    CATEGORY_CHOICES = (
+        ('nature', 'Nature'),
+        ('heritage', 'Heritage'),
+        ('spiritual', 'Spiritual / Shrine'),
+        ('culture', 'Culture'),
+    )
+
     district = models.ForeignKey(District, on_delete=models.CASCADE, related_name='places')
+    slug = models.SlugField(max_length=255, unique=True, blank=True)
     title = models.CharField(max_length=255, default="")
     description = models.TextField(default="")
-    category = models.CharField(max_length=100)
-    image = models.CharField(max_length=500, blank=True, null=True)
+    category = models.CharField(max_length=100, choices=CATEGORY_CHOICES, default='nature')
+    image = models.ImageField(upload_to="places/", max_length=500, blank=True, null=True)
     highlight = models.CharField(max_length=255, blank=True, null=True)
+
+    # Rich Editorial Details
+    overview = models.TextField(blank=True, default="", help_text="Detailed destination overview and significance")
+    history = models.TextField(blank=True, default="", help_text="Historical, archaeological, or mythological background")
+
+    # Geographic & Travel Facts
+    location = models.CharField(max_length=255, blank=True, default="", help_text="Local area or municipality within the district")
+    elevation = models.CharField(max_length=120, blank=True, default="", help_text="Altitude / elevation (e.g. 205m above sea level)")
+    area_or_size = models.CharField(max_length=120, blank=True, default="", help_text="Area, length, or scale (e.g. 2,563 hectares)")
+    best_time_to_visit = models.CharField(max_length=255, blank=True, default="", help_text="Recommended seasons / months to visit")
+    opening_hours = models.CharField(max_length=120, blank=True, default="", help_text="Visiting hours or open access timings")
+    entry_fee = models.CharField(max_length=160, blank=True, default="", help_text="Entry or permit fee details")
+    weather_summary = models.CharField(max_length=160, blank=True, default="", help_text="Typical local climate / temperature (e.g. 30°C • Subtropical)")
+    how_to_reach = models.TextField(blank=True, default="", help_text="Transport, highway, airport, or trail access details")
+    latitude = models.FloatField(blank=True, null=True)
+    longitude = models.FloatField(blank=True, null=True)
+
+    # Cultural Highlights & Traditions
+    festivals = models.TextField(blank=True, default="", help_text="Notable festivals, jatras, or fairs associated with this place")
+    local_cuisine = models.TextField(blank=True, default="", help_text="Local food, prasad, or culinary specialties nearby")
+    traditions = models.TextField(blank=True, default="", help_text="Local rituals, folk arts, or cultural traditions")
+    languages = models.CharField(max_length=255, blank=True, default="", help_text="Primary spoken languages or dialects in the area")
+
+    # Travel Advisory
+    travel_advisory = models.TextField(blank=True, default="", help_text="Visitor tips, local guides, clothing, or safety advice")
 
     class Meta:
         verbose_name = "District Place"
         verbose_name_plural = "District Places"
         ordering = ['id']
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            raw_title = getattr(self, 'title_en', None) or self.title or ''
+            district_slug = self.district.slug if self.district_id and self.district else 'place'
+            base = slugify(raw_title) or f"{district_slug}-place"
+            base = base[:240]
+            candidate = base
+            counter = 1
+            while DistrictPlace.objects.filter(slug=candidate).exclude(pk=self.pk).exists():
+                suffix = f"-{counter}"
+                candidate = f"{base[:255 - len(suffix)]}{suffix}"
+                counter += 1
+            self.slug = candidate
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.title} ({self.district.name})"

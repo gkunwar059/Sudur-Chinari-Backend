@@ -25,7 +25,7 @@ class DistrictCultureInline(TranslationStackedInline):
 class DistrictPlaceInline(TranslationTabularInline):
     model = DistrictPlace
     extra = 1
-    fields = ('title_en', 'title_ne', 'category', 'highlight', 'image')
+    fields = ('title_en', 'title_ne', 'slug', 'category', 'highlight_en', 'highlight_ne', 'location_en', 'location_ne', 'image')
 
 class DistrictSliderImageInline(TranslationTabularInline):
     model = DistrictSliderImage
@@ -64,9 +64,51 @@ class DistrictAdmin(BaseTranslatedAdmin):
 
 @admin.register(DistrictPlace)
 class DistrictPlaceAdmin(BaseTranslatedAdmin):
-    list_display = ('title_en', 'district', 'category', 'highlight', 'translation_complete')
+    list_display = ('title_en', 'slug', 'district', 'category', 'location_en', 'highlight_en', 'translation_complete')
     list_filter = ('district', 'category')
-    search_fields = ('title_en', 'title_ne', 'district__name_en')
+    search_fields = ('title_en', 'title_ne', 'slug', 'location_en', 'location_ne', 'district__name_en')
+    prepopulated_fields = {'slug': ('title_en',)}
+    fieldsets = (
+        ("Basic Information", {
+            "fields": (
+                "district", "title_en", "title_ne", "slug", "category",
+                "highlight_en", "highlight_ne", "image",
+            )
+        }),
+        ("Description & Editorial Overview", {
+            "fields": (
+                "description_en", "description_ne",
+                "overview_en", "overview_ne",
+                "history_en", "history_ne",
+            )
+        }),
+        ("Location, Geographic Facts & Access", {
+            "fields": (
+                "location_en", "location_ne",
+                "elevation_en", "elevation_ne",
+                "area_or_size_en", "area_or_size_ne",
+                "best_time_to_visit_en", "best_time_to_visit_ne",
+                "opening_hours_en", "opening_hours_ne",
+                "entry_fee_en", "entry_fee_ne",
+                "weather_summary_en", "weather_summary_ne",
+                "how_to_reach_en", "how_to_reach_ne",
+                "latitude", "longitude",
+            )
+        }),
+        ("Local Culture, Cuisine & Traditions", {
+            "fields": (
+                "festivals_en", "festivals_ne",
+                "local_cuisine_en", "local_cuisine_ne",
+                "traditions_en", "traditions_ne",
+                "languages_en", "languages_ne",
+            )
+        }),
+        ("Travel Advisory & Visitor Tips", {
+            "fields": (
+                "travel_advisory_en", "travel_advisory_ne",
+            )
+        }),
+    )
 
 @admin.register(Partner)
 class PartnerAdmin(BaseTranslatedAdmin):
